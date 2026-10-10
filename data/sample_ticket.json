@@ -1,0 +1,23 @@
+{
+  "id": "T-1001",
+  "received_at": "2026-09-02T09:14:00+05:30",
+  "subject": "charged 249 without telling me",
+  "body": "i only paid 1 rupee to try the app. today 249 is gone from my account. i did not agree to this. refund it.",
+  "purchases": [
+    {
+      "id": "pay_A1",
+      "type": "trial",
+      "amount_inr": 1,
+      "status": "successful",
+      "at": "2026-08-31T20:02:00+05:30"
+    },
+    {
+      "id": "pay_A2",
+      "type": "renewal",
+      "amount_inr": 249,
+      "status": "successful",
+      "at": "2026-09-01T20:04:00+05:30"
+    }
+  ],
+  "app_opens_since_renewal": 0
+}
