@@ -121,6 +121,14 @@ class IdempotencyMetadata(BaseModel):
     decision_id: str
 
 
+class HealthResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    status: Literal["ok"]
+    version: str
+    classifier_mode: Literal["fixture", "ai"]
+
+
 class TriageResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

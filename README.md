@@ -15,6 +15,8 @@ uvicorn dhaba_triage.app:app --app-dir src --reload
 Then call:
 
 ```bash
+curl http://127.0.0.1:8000/healthz
+
 curl -X POST http://127.0.0.1:8000/triage \
   -H "content-type: application/json" \
   --data @data/sample_ticket.json
