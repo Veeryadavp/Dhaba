@@ -24,6 +24,8 @@ uvicorn dhaba_triage.app:app --app-dir src --reload
 
 Expected test result at submission time: `24 passed`.
 
+The same test command also runs in GitHub Actions on pushes and pull requests.
+
 Then call:
 
 ```bash
