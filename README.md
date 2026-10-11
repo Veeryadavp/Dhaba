@@ -23,8 +23,11 @@ curl -X POST http://127.0.0.1:8000/triage \
 To replay all attached tickets in fixture mode:
 
 ```bash
-python scripts/run_fixture.py
+python scripts/run_fixture.py --format markdown
+python scripts/run_fixture.py --format jsonl
 ```
+
+Markdown is easiest to read or paste into the README. JSONL is useful for comparing complete response objects in scripts.
 
 ## Configuration
 
