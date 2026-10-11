@@ -26,6 +26,18 @@ To replay all attached tickets in fixture mode:
 python scripts/run_fixture.py
 ```
 
+## Configuration
+
+The service is safe to run without credentials by default.
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `DHABA_TRIAGE_DB` | `triage.sqlite3` | SQLite path for idempotent decisions. |
+| `DHABA_CLASSIFIER_MODE` | `fixture` | `fixture` runs deterministic local classification; `ai` is reserved for a configured model client. |
+| `DHABA_AI_MODEL` | unset | Model name to use when an AI client is wired in. |
+
+If `DHABA_CLASSIFIER_MODE=ai` is set before a model client is configured, startup fails clearly instead of silently falling back or pretending to use AI.
+
 ## Design
 
 `POST /triage` accepts one ticket in the attached JSON shape. The endpoint validates input with Pydantic, asks a classifier for non-money triage signals, passes trusted structured data to a deterministic refund policy, then stores the final response by ticket ID. Repeated ticket IDs return the stored decision and set `idempotency.replayed=true`.

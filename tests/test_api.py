@@ -1,10 +1,10 @@
 import json
-import os
 from pathlib import Path
 
 from fastapi.testclient import TestClient
 
 from dhaba_triage.app import create_app
+from dhaba_triage.settings import Settings
 
 
 def _raw_ticket(ticket_id: str) -> dict:
@@ -12,9 +12,10 @@ def _raw_ticket(ticket_id: str) -> dict:
     return next(ticket for ticket in payload["tickets"] if ticket["id"] == ticket_id)
 
 
-def test_post_triage_returns_support_tool_response(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.setenv("DHABA_TRIAGE_DB", str(tmp_path / "triage.sqlite3"))
-    client = TestClient(create_app())
+def test_post_triage_returns_support_tool_response(tmp_path: Path) -> None:
+    client = TestClient(
+        create_app(Settings(database_path=str(tmp_path / "triage.sqlite3")))
+    )
 
     response = client.post("/triage", json=_raw_ticket("T-1001"))
 
@@ -27,9 +28,10 @@ def test_post_triage_returns_support_tool_response(tmp_path: Path, monkeypatch) 
     assert body["idempotency"]["replayed"] is False
 
 
-def test_post_triage_replays_existing_decision(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.setenv("DHABA_TRIAGE_DB", str(tmp_path / "triage.sqlite3"))
-    client = TestClient(create_app())
+def test_post_triage_replays_existing_decision(tmp_path: Path) -> None:
+    client = TestClient(
+        create_app(Settings(database_path=str(tmp_path / "triage.sqlite3")))
+    )
     ticket = _raw_ticket("T-1001")
 
     first = client.post("/triage", json=ticket).json()
@@ -39,16 +41,13 @@ def test_post_triage_replays_existing_decision(tmp_path: Path, monkeypatch) -> N
     assert second["idempotency"]["decision_id"] == first["idempotency"]["decision_id"]
 
 
-def test_post_triage_rejects_unknown_fields(tmp_path: Path, monkeypatch) -> None:
-    monkeypatch.setenv("DHABA_TRIAGE_DB", str(tmp_path / "triage.sqlite3"))
-    client = TestClient(create_app())
+def test_post_triage_rejects_unknown_fields(tmp_path: Path) -> None:
+    client = TestClient(
+        create_app(Settings(database_path=str(tmp_path / "triage.sqlite3")))
+    )
     ticket = _raw_ticket("T-1001")
     ticket["unexpected"] = "nope"
 
     response = client.post("/triage", json=ticket)
 
     assert response.status_code == 422
-
-
-def test_environment_is_not_mutated() -> None:
-    assert "DHABA_TRIAGE_DB" not in os.environ or os.environ["DHABA_TRIAGE_DB"]

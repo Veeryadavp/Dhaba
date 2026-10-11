@@ -1,22 +1,21 @@
 from __future__ import annotations
 
 import logging
-import os
 
 from fastapi import FastAPI, Request
 
+from dhaba_triage.factory import build_service
 from dhaba_triage.schemas import TicketIn, TriageResponse
-from dhaba_triage.service import TriageService
-from dhaba_triage.store import DecisionStore
+from dhaba_triage.settings import Settings
 
 
 logger = logging.getLogger("dhaba_triage")
 
 
-def create_app() -> FastAPI:
+def create_app(settings: Settings | None = None) -> FastAPI:
+    settings = settings or Settings.from_env()
     app = FastAPI(title="Dhaba Triage", version="0.1.0")
-    database_path = os.getenv("DHABA_TRIAGE_DB", "triage.sqlite3")
-    service = TriageService(store=DecisionStore(database_path))
+    service = build_service(settings)
 
     @app.middleware("http")
     async def log_request(request: Request, call_next):  # type: ignore[no-untyped-def]
