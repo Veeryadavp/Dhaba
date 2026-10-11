@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import logging
+
 from dhaba_triage.classifier import LOW_CONFIDENCE_THRESHOLD, FixtureClassifier
+from dhaba_triage.logging_utils import safe_extra
 from dhaba_triage.refunds import decide_refund
 from dhaba_triage.schemas import (
     ClassifierMetadata,
@@ -9,6 +12,9 @@ from dhaba_triage.schemas import (
     TriageResponse,
 )
 from dhaba_triage.store import DecisionStore
+
+
+logger = logging.getLogger("dhaba_triage.service")
 
 
 class TriageService:
@@ -23,6 +29,15 @@ class TriageService:
     def triage(self, ticket: TicketIn) -> TriageResponse:
         existing = self.store.get(ticket.id)
         if existing is not None:
+            logger.info(
+                "triage_replayed",
+                extra=safe_extra(
+                    ticket_id=ticket.id,
+                    decision_id=existing.idempotency.decision_id,
+                    category=existing.category.value,
+                    refund_action=existing.refund.action,
+                ),
+            )
             return existing
 
         classified = self.classifier.classify(ticket)
@@ -50,4 +65,22 @@ class TriageService:
                 decision_id=self.store.new_decision_id(),
             ),
         )
-        return self.store.save(response)
+        saved = self.store.save(response)
+        logger.info(
+            "triage_completed",
+            extra=safe_extra(
+                ticket_id=ticket.id,
+                decision_id=saved.idempotency.decision_id,
+                category=saved.category.value,
+                severity=saved.severity.value,
+                refund_action=saved.refund.action,
+                refund_amount_inr=saved.refund.amount_inr,
+                needs_human=saved.needs_human,
+                confidence=saved.confidence,
+                classifier_mode=saved.classifier.mode,
+                low_confidence=saved.classifier.low_confidence,
+                prompt_injection_detected=saved.classifier.prompt_injection_detected,
+                idempotency_replayed=saved.idempotency.replayed,
+            ),
+        )
+        return saved

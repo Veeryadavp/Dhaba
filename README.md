@@ -48,6 +48,8 @@ The default classifier is fixture mode so evaluators can run the service without
 
 `ModelBackedClassifier` is the production-facing classifier wrapper. It sends a schema-focused prompt to a model client, treats the raw model text as untrusted, extracts a JSON object, validates it with `ClassifierResult`, retries once with a repair prompt, and then falls back to a safe human-review classification if validation still fails. Tests cover prose-wrapped JSON, retry after invalid output, and fallback after repeated invalid output.
 
+Logs are structured around safe operational fields: route, status code, duration, ticket ID, decision ID, category, severity, refund action, confidence, classifier mode, and injection/low-confidence flags. Raw ticket subject/body, company names, GSTINs, and payment IDs are not logged. A redaction helper also masks common sensitive values if they accidentally reach a log event.
+
 ## API Contract
 
 `POST /triage`
@@ -84,6 +86,7 @@ Response:
 - Failed or initiated payments are not refundable because no successful captured payment is present.
 - Raw subject/body text is not logged.
 - Model output is untrusted until it passes Pydantic validation; invalid model output is retried once, then degraded to human review.
+- Logs should help debug decisions without becoming a second copy of the support inbox or billing database.
 
 ## Dashboard Metric
 
