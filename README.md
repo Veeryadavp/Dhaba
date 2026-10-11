@@ -34,6 +34,8 @@ The AI boundary is intentional: the classifier can suggest `category`, `severity
 
 The default classifier is fixture mode so evaluators can run the service without an API key. A real model can be added behind the same classifier interface, with strict output validation and fallback behavior preserved.
 
+`ModelBackedClassifier` is the production-facing classifier wrapper. It sends a schema-focused prompt to a model client, treats the raw model text as untrusted, extracts a JSON object, validates it with `ClassifierResult`, retries once with a repair prompt, and then falls back to a safe human-review classification if validation still fails. Tests cover prose-wrapped JSON, retry after invalid output, and fallback after repeated invalid output.
+
 ## API Contract
 
 `POST /triage`
@@ -69,6 +71,7 @@ Response:
 - Annual renewal with zero usage can be refund-eligible.
 - Failed or initiated payments are not refundable because no successful captured payment is present.
 - Raw subject/body text is not logged.
+- Model output is untrusted until it passes Pydantic validation; invalid model output is retried once, then degraded to human review.
 
 ## Dashboard Metric
 
