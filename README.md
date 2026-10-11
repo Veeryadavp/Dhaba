@@ -2,6 +2,16 @@
 
 FastAPI service for the Propel Dhaba take-home assignment. The first implementation is deliberately small: strict schemas, fixture classification, deterministic refund decisions, SQLite idempotency, and tests around the risky behavior.
 
+## Project Layout
+
+- `src/dhaba_triage/app.py`: FastAPI app and routes.
+- `src/dhaba_triage/schemas.py`: Pydantic request/response contracts.
+- `src/dhaba_triage/classifier.py`: fixture classifier plus model-output validation wrapper.
+- `src/dhaba_triage/refunds.py`: deterministic refund policy.
+- `src/dhaba_triage/store.py`: SQLite-backed idempotency store.
+- `scripts/run_fixture.py`: replay all attached tickets without an API key.
+- `tests/`: focused tests for schemas, API behavior, refund rules, idempotency, logging, model validation, and replay output.
+
 ## Run
 
 ```bash
@@ -11,6 +21,8 @@ pip install -e ".[dev]"
 pytest
 uvicorn dhaba_triage.app:app --app-dir src --reload
 ```
+
+Expected test result at submission time: `24 passed`.
 
 Then call:
 
