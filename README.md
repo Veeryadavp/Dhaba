@@ -193,4 +193,6 @@ Prioritise correctness, security, idempotency, testability, and the five-hour de
 
 One thing the agent got wrong: the initial deterministic refund policy recommended a refund for T-1009 because it saw a low-usage billing complaint. The billing data actually had one failed payment and one successful payment, not two successful charges. I caught it by running the all-ticket table, changed the policy, and added a regression test.
 
+Another correction from review: I initially added a `GET /healthz` endpoint as normal backend polish. The assignment asked for one HTTP endpoint, `POST /triage`, so I removed `/healthz` in the final compliance pass and kept the public API surface strict.
+
 One part that is intentionally hand-shaped is the refund policy. Encoding those rules directly was clearer and safer than trying to prompt a model into doing money decisions.
