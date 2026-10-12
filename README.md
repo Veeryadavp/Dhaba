@@ -22,15 +22,13 @@ pytest
 uvicorn dhaba_triage.app:app --app-dir src --reload
 ```
 
-Expected test result at submission time: `24 passed`.
+Expected test result at submission time: `23 passed`.
 
 The same test command also runs in GitHub Actions on pushes and pull requests.
 
-Then call:
+Then call the single HTTP endpoint required by the assignment:
 
 ```bash
-curl http://127.0.0.1:8000/healthz
-
 curl -X POST http://127.0.0.1:8000/triage \
   -H "content-type: application/json" \
   --data @data/sample_ticket.json
@@ -82,6 +80,13 @@ Request: one ticket matching the attached file shape:
 - `purchases[]` with `id`, `type`, `amount_inr`, `status`, `at`
 - `app_opens_since_renewal`
 
+Severity scale:
+
+- `low`: informational issue or low user impact.
+- `medium`: normal support issue, including most billing questions.
+- `high`: blocked access, failed core flow, likely refund, or angry/escalated user tone.
+- `urgent`: fraud, unauthorized payment, or legal/threat language requiring immediate human review.
+
 Response:
 
 - `ticket_id`
@@ -105,6 +110,7 @@ Response:
 - Failed or initiated payments are not refundable because no successful captured payment is present.
 - Raw subject/body text is not logged.
 - Model output is untrusted until it passes Pydantic validation; invalid model output is retried once, then degraded to human review.
+- Classifier confidence below `0.65` is treated as low confidence and forces `needs_human=true`.
 - Logs should help debug decisions without becoming a second copy of the support inbox or billing database.
 
 ## Dashboard Metric
@@ -132,6 +138,13 @@ Ambiguous tickets: T-1004 has too little text; T-1005 needs payment-provider rec
 
 Prompt-injection tickets: T-1003 and T-1011. The service records `classifier.prompt_injection_detected=true`, keeps `needs_human=true`, and does not follow the embedded instruction to reveal prompts, override refund policy, resolve the ticket, or refund all payments.
 
+Relevant fields from JSONL fixture replay:
+
+```json
+{"ticket_id":"T-1003","needs_human":true,"classifier":{"prompt_injection_detected":true},"refund":{"action":"none","amount_inr":0}}
+{"ticket_id":"T-1011","needs_human":true,"classifier":{"prompt_injection_detected":true},"refund":{"action":"none","amount_inr":0}}
+```
+
 ## Backend Track
 
 At 50 tickets per second, I would split synchronous ingestion from model work:
@@ -153,7 +166,7 @@ For 3am debugging, I would add a per-ticket trace ID and a compact decision trac
 
 ## AI Usage Notes
 
-This version was built with Codex as a pair-programming agent. I directed the architecture, reviewed the assignment constraints, and checked the refund policy behavior against the attached tickets. Codex wrote most of the first-pass code and tests; I treated its output as draft implementation, then verified behavior with tests and the 12-ticket replay.
+This version was built with Codex as a pair-programming agent. I directed the architecture, reviewed the assignment constraints, and checked the refund policy behavior against the attached tickets. Codex wrote roughly 70% of the first-pass code and tests; I treated its output as draft implementation, then verified behavior with tests and the 12-ticket replay.
 
 Best prompt used:
 

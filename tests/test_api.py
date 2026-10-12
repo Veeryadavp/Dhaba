@@ -12,21 +12,6 @@ def _raw_ticket(ticket_id: str) -> dict:
     return next(ticket for ticket in payload["tickets"] if ticket["id"] == ticket_id)
 
 
-def test_healthz_reports_safe_runtime_metadata(tmp_path: Path) -> None:
-    client = TestClient(
-        create_app(Settings(database_path=str(tmp_path / "triage.sqlite3")))
-    )
-
-    response = client.get("/healthz")
-
-    assert response.status_code == 200
-    assert response.json() == {
-        "status": "ok",
-        "version": "0.1.0",
-        "classifier_mode": "fixture",
-    }
-
-
 def test_post_triage_returns_support_tool_response(tmp_path: Path) -> None:
     client = TestClient(
         create_app(Settings(database_path=str(tmp_path / "triage.sqlite3")))
